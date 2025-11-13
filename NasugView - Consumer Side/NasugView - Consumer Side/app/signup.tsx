@@ -31,7 +31,7 @@ export default function Signup() {
   const [roleValue, setRoleValue] = useState("consumer");
   const [roleItems, setRoleItems] = useState([
     { label: "Consumer", value: "consumer" },
-    { label: "Business Owner", value: "business_owner" },
+    { label: "Business Owner", value: "business owner" },
   ]);
 
   // Document upload state - single document for business/mayor's permit
@@ -47,7 +47,7 @@ export default function Signup() {
 
   // ✅ Fetch business lines from database
   useEffect(() => {
-    if (roleValue === "business_owner") {
+    if (roleValue === "business owner") {
       getBusinessLines()
         .then((data) => {
           if (data.success) {
@@ -120,8 +120,26 @@ export default function Signup() {
             const ocrResult = await OCRService.recognizeText(selectedDoc.uri);
             
             if (ocrResult.success && ocrResult.text) {
-              setExtractedText(ocrResult.text);
-              setOcrSuccess(true);
+              const extractedTextLower = ocrResult.text.toLowerCase();
+              
+              // Validate if the document contains "business permit" or related keywords
+              const hasBusinessPermit = extractedTextLower.includes('business permit') || 
+                                       extractedTextLower.includes('mayor\'s permit') ||
+                                       extractedTextLower.includes('mayors permit') ||
+                                       extractedTextLower.includes('business license');
+              
+              if (hasBusinessPermit) {
+                setExtractedText(ocrResult.text);
+                setOcrSuccess(true);
+              } else {
+                setOcrSuccess(false);
+                setExtractedText("");
+                setBusinessDocument(null);
+                Alert.alert(
+                  "Invalid Document",
+                  "The uploaded document does not appear to be a valid Business Permit or Mayor's Permit. Please upload the correct document."
+                );
+              }
             } else {
               setOcrSuccess(false);
               setExtractedText("");
@@ -172,12 +190,12 @@ export default function Signup() {
       return;
     }
 
-    if (roleValue === "business_owner" && !businessDocument) {
+    if (roleValue === "business owner" && !businessDocument) {
       Alert.alert("Missing Document", "Please attach your Business Permit or Mayor's Permit.");
       return;
     }
 
-    if (roleValue === "business_owner" && !businessLineValue) {
+    if (roleValue === "business owner" && !businessLineValue) {
       Alert.alert("Error", "Please select your business line.");
       return;
     }
@@ -190,7 +208,7 @@ export default function Signup() {
     formData.append("role", roleValue);
     formData.append("business_line_id", businessLineValue || "");
 
-    if (roleValue === "business_owner" && businessDocument) {
+    if (roleValue === "business owner" && businessDocument) {
       
       // Default to business_permit field name for backend compatibility
       formData.append("business_permit", {
@@ -206,7 +224,7 @@ export default function Signup() {
 
       if (result.success) {
         // If business owner with successfully extracted text, save to database
-        if (roleValue === "business_owner" && businessDocument && result.signup_id && ocrSuccess && extractedText) {
+        if (roleValue === "business owner" && businessDocument && result.signup_id && ocrSuccess && extractedText) {
           try {
             // Get the business line name from the selected ID
             const selectedBusinessLine = businessLineItems.find(item => item.value === businessLineValue);
@@ -222,16 +240,25 @@ export default function Signup() {
           }
         }
 
-        if (roleValue === "business_owner") {
+        if (roleValue === "business owner") {
           Alert.alert(
-            "Success",
-            "Signup successful! Please check your email for approval verification."
+            "Waiting for Approval",
+            "Your account has been created successfully! Please wait for admin approval before you can access the app. You will receive an email notification once approved.",
+            [
+              {
+                text: "OK",
+                onPress: () => navigation.replace("Login")
+              }
+            ]
           );
         } else {
-          Alert.alert("Success", "Signup successful! You can now log in.");
+          Alert.alert("Success", "Signup successful! You can now log in.", [
+            {
+              text: "OK",
+              onPress: () => navigation.replace("Tabs", { username })
+            }
+          ]);
         }
-
-        navigation.replace("Tabs", { username });
       } else {
         Alert.alert("Error", result.message || "Signup failed.");
       }
@@ -259,7 +286,7 @@ export default function Signup() {
       />
 
       {/* ✅ Business Line Dropdown (only for Business Owners) */}
-      {roleValue === "business_owner" && (
+      {roleValue === "business owner" && (
         <>
           <DropDownPicker
             open={businessLineOpen}
@@ -349,7 +376,7 @@ export default function Signup() {
         </TouchableOpacity>
       </View>
 
-      {roleValue === "business_owner" && (
+      {roleValue === "business owner" && (
         <View style={{ width: "100%" }}>
           {/* Document Upload */}
           <TouchableOpacity 
@@ -372,7 +399,6 @@ export default function Signup() {
             </Text>
           </TouchableOpacity>
 
-        
 
           {isProcessingOCR && (
             <View style={styles.ocrStatusContainer}>
