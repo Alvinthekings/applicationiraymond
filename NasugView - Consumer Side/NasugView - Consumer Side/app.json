@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lindsay13.NasugView2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,9 +46,8 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "efbf9d62-4150-41e3-890e-a3befa0148c8"
+        "projectId": "ced8caaf-c18f-4430-9fa8-a6e483a6301c"
       }
-    },
-    "owner": "lindsay13"
+    }
   }
 }

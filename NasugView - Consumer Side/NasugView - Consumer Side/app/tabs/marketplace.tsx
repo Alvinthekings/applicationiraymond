@@ -20,7 +20,7 @@ import {
   View,
 } from 'react-native';
 import type { RootStackParamList } from '../navigation/StackNavigator';
-import { BASE_URL } from '../utils/api';
+import { loadBusinesses, loadNearbyBusinesses } from '../utils/api'; // ✅ Using centralized API
 
 const categories = ['All', 'Nearby', 'Restaurants', 'Clothes', 'Resorts', 'Cafes'];
 
@@ -65,8 +65,7 @@ export default function Marketplace() {
   const fetchBusinesses = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${BASE_URL}/load_businesses.php`);
-      const data = await res.json();
+      const data = await loadBusinesses();
       if (data.success) {
         setBusinesses(data.businesses);
         setFilteredBusinesses(data.businesses);
@@ -106,10 +105,7 @@ export default function Marketplace() {
           const { latitude, longitude } = location.coords;
 
           setLoading(true);
-          const response = await fetch(
-            `${BASE_URL}/load_nearby_businesses.php?lat=${latitude}&lon=${longitude}`
-          );
-          const data = await response.json();
+          const data = await loadNearbyBusinesses(latitude, longitude);
 
           if (data.success) {
             setNearbyData(data.businesses);

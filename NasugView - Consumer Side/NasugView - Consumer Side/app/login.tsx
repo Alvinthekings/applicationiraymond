@@ -2,17 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Image,
+    Modal,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import type { RootStackParamList } from './navigation/StackNavigator';
-import { loginUser } from './utils/api';
+import { loginUser } from './utils/api'; // ✅ Using centralized API
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 

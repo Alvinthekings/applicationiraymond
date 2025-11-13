@@ -3,24 +3,24 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  FlatList,
-  Image,
-  Modal,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Image,
+    Modal,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import DefaultProfile from '../../assets/images/default.png';
 import type { RootStackParamList } from '../navigation/StackNavigator';
 
-import { BASE_URL } from '../utils/api';
+import { loadAllReviews, loadComments, loadFeaturedBusinesses, loadLeastBusinesses, updateReview } from '../utils/api'; // ✅ Using centralized API
 
 type Review = {
   id: string;
@@ -89,13 +89,7 @@ const handleLike = async (reviewId: string) => {
   if (!username) return; // prevent liking if not logged in
 
   try {
-    const res = await fetch(`${BASE_URL}/update_review.php`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ review_id: reviewId, action: "like", username }),
-    });
-
-    const data = await res.json();
+    const data = await updateReview(reviewId, "like", username);
     if (data.success) {
       // update heart color and like count immediately
       setLikedMap(prev => ({ ...prev, [reviewId]: data.is_liked }));
@@ -121,8 +115,7 @@ const openComments = async (review: Review) => {
   setIsCommentModalVisible(true);
 
   try {
-    const res = await fetch(`${BASE_URL}/load_comments.php?review_id=${review.id}`);
-    const data = await res.json();
+    const data = await loadComments(review.id);
 
     if (data.success && Array.isArray(data.comments)) {
       // Map backend comments to our Comment type
@@ -147,18 +140,7 @@ const openComments = async (review: Review) => {
   if (!newComment.trim() || !selectedReview) return;
 
   try {
-    const response = await fetch(`${BASE_URL}/update_review.php`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        review_id: selectedReview.id,
-        action: 'comment',
-        username,
-        comment: newComment,
-      }),
-    });
-
-    const data = await response.json();
+    const data = await updateReview(selectedReview.id, 'comment', username, newComment);
     if (data.success) {
       setNewComment('');
       // Refresh comments after submitting
@@ -173,8 +155,7 @@ const openComments = async (review: Review) => {
   // --- Fetch top-rated featured businesses ---
   const fetchFeaturedBusinesses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/load_featured_businesses.php`);
-      const data = await response.json();
+      const data = await loadFeaturedBusinesses();
       if (data.success && Array.isArray(data.businesses)) {
         setFeaturedCards(data.businesses.slice(0, 4));
       } else {
@@ -187,8 +168,7 @@ const openComments = async (review: Review) => {
 
   const fetchLeastBusinesses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/load_least_businesses.php`);
-      const data = await response.json();
+      const data = await loadLeastBusinesses();
       if (data.success && Array.isArray(data.businesses)) {
         setLeastCards(data.businesses.slice(0, 3));
       } else {
@@ -202,8 +182,7 @@ const openComments = async (review: Review) => {
   // --- Fetch all reviews ---
 const fetchReviews = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/load_allreviews.php?username=${username ?? ''}`);
-    const data = await res.json();
+    const data = await loadAllReviews(username ?? '');
 
     if (data.success && Array.isArray(data.reviews)) {
       // parse reviews
